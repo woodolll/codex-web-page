@@ -61,7 +61,7 @@ export function createLiquidExperience({scene,camera,renderer,reduced,isActive,o
  // Three physical photo surfaces turn and pass through the reflecting water.
  const cards=[],loader=new THREE.TextureLoader();
  for(let i=0;i<3;i++){
-  const mat=new THREE.ShaderMaterial({transparent:true,side:THREE.DoubleSide,uniforms:{map:{value:null},uvTransform:{value:new THREE.Matrix3()},time:{value:0},opacity:{value:0},dive:{value:0}},vertexShader:`uniform float time;uniform float dive;varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec3 p=position;p.z+=sin(p.x*2.3+p.y*2.+time*1.1)*(.025+dive*.12);vec4 world=modelMatrix*vec4(p,1.);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,fragmentShader:`uniform sampler2D map;uniform mat3 uvTransform;uniform float time;uniform float opacity;uniform float dive;varying vec2 vUv;varying vec3 vWorld;void main(){float wet=1.-smoothstep(-.3,.55,vWorld.y);vec2 uv=(uvTransform*vec3(vUv,1.)).xy;uv.x+=sin(uv.y*39.+time*2.)*wet*.017;vec4 photo=texture2D(map,uv);vec3 col=mix(photo.rgb,vec3(.07,.32,.37),wet*.72);float edge=smoothstep(0.,.025,vUv.x)*smoothstep(0.,.025,1.-vUv.x)*smoothstep(0.,.02,vUv.y)*smoothstep(0.,.02,1.-vUv.y);gl_FragColor=vec4(col,opacity*edge);}`});
+  const mat=new THREE.ShaderMaterial({transparent:true,side:THREE.DoubleSide,uniforms:{map:{value:null},uvTransform:{value:new THREE.Matrix3()},time:{value:0},opacity:{value:0},dive:{value:0}},vertexShader:`uniform float time;uniform float dive;varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec3 p=position;float tip=1.-uv.y;float curl=pow(tip,1.7)*dive;float pull=dive*dive;p.x*=1.-pull*(.2+tip*.65);p.y-=curl*2.6;p.z+=sin(tip*3.14159+dive*2.4)*curl*2.2; p.x+=sin(tip*8.-time*3.)*curl*.22;p.z+=sin(p.x*2.3+p.y*2.+time*1.1)*(.025+dive*.22);vec4 world=modelMatrix*vec4(p,1.);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,fragmentShader:`uniform sampler2D map;uniform mat3 uvTransform;uniform float time;uniform float opacity;uniform float dive;varying vec2 vUv;varying vec3 vWorld;void main(){float wet=1.-smoothstep(-.3,.55,vWorld.y);vec2 uv=(uvTransform*vec3(vUv,1.)).xy;uv.x+=sin(uv.y*39.+time*2.)*wet*.026;uv.y+=sin(uv.x*24.-time*2.8)*wet*.014;vec4 photo=texture2D(map,uv);vec3 col=mix(photo.rgb,vec3(.07,.32,.37),wet*.72);float edge=smoothstep(0.,.025,vUv.x)*smoothstep(0.,.025,1.-vUv.x)*smoothstep(0.,.02,vUv.y)*smoothstep(0.,.02,1.-vUv.y);float submerged=smoothstep(-1.25,.12,vWorld.y);float waterline=exp(-abs(vWorld.y-.06)*18.);col+=vec3(.48,.68,.7)*waterline*.35;gl_FragColor=vec4(col,opacity*edge*submerged);}`});
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(3.6,4.5,36,48),mat);mesh.visible=false;scene.add(mesh);cards.push(mesh);
   loader.load(`assets/look-0${i+1}.jpg`,texture=>{texture.colorSpace=THREE.SRGBColorSpace;const a=texture.image.width/texture.image.height,desired=3.6/4.5;if(a>desired){texture.repeat.x=desired/a;texture.offset.x=(1-texture.repeat.x)/2}else{texture.repeat.y=a/desired;texture.offset.y=(1-texture.repeat.y)/2}texture.updateMatrix();mat.uniforms.uvTransform.value.copy(texture.matrix);mat.uniforms.map.value=texture},undefined,()=>{mesh.userData.failed=true});
  }
@@ -89,13 +89,13 @@ export function createLiquidExperience({scene,camera,renderer,reduced,isActive,o
   document.body.classList.toggle('flow-scrolled',isHome&&progress>.2);
   let selected=-1,divePulse=0;
   cards.forEach((card,i)=>{
-   const p=progress-(.32+i*1.08),appear=ease(-.04,.28,p),dive=ease(.48,1.08,p);const visible=isHome&&p>-.04&&p<1.2&&!!card.material.uniforms.map.value&&!card.userData.failed;
+   const p=progress-(.32+i*1.08),appear=ease(-.04,.28,p),dive=Math.pow(ease(.42,1.08,p),1.65);const visible=isHome&&p>-.04&&p<1.2&&!!card.material.uniforms.map.value&&!card.userData.failed;
    card.visible=visible;if(!visible)return;
    if(p>=0&&p<1.08)selected=i;
    const mobile=innerWidth<650;card.scale.setScalar(mobile?.75:1);
-   const x=1.05+(i-1)*.08;const y=THREE.MathUtils.lerp(2.6,3.45,appear)-dive*5.7;
-   card.position.set(x,y,4.4-dive*.4);
-   card.quaternion.copy(camera.quaternion);card.rotateX(reduced?0:-dive*Math.PI*1.02);card.rotateZ(reduced?0:(1-appear)*-.15+Math.sin(time*.65+i)*.017);
+   const x=1.05+(i-1)*.08;const y=THREE.MathUtils.lerp(2.6,3.45,appear)-dive*6.8;
+   card.position.set(x,y,4.4-dive*2.6);card.scale.multiplyScalar(1-dive*.38);
+   card.quaternion.copy(camera.quaternion);card.rotateX(reduced?0:-dive*Math.PI*.48);card.rotateZ(reduced?0:(1-appear)*-.15+Math.sin(time*.65+i)*.017);
    const mat=card.material;mat.uniforms.time.value=time;mat.uniforms.dive.value=reduced?0:dive;mat.uniforms.opacity.value=appear*(1-ease(1.02,1.19,p));
    divePulse=Math.max(divePulse,Math.sin(dive*Math.PI));
   });
