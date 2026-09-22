@@ -16,3 +16,5 @@ body.entered:not(.page-open){overflow-x:hidden;overflow-y:auto}body:not(.page-op
 /* Preserve scene drag input underneath home copy. */
 #home{pointer-events:none}#home a,#home button{pointer-events:auto}.exploring #home a,.exploring #home button{pointer-events:none}.dragging{user-select:none}.entered:not(.page-open) #world-hint{opacity:.8}.flow-scrolled:not(.exploring) #world-hint{opacity:0}
 #world-hint{bottom:155px;font-size:11px;letter-spacing:0}@media(max-width:650px){#world-hint{bottom:150px;font-size:10px}}
+
+#collection-room{position:fixed;inset:0;width:100%;height:100%;z-index:9;pointer-events:none}#projects{background:linear-gradient(90deg,#eff0ee24,#eff0ee66 48%,#eff0ee24)}#projects .page-heading{background:linear-gradient(#eeefeeed 65%,#eeefee00)}

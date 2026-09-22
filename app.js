@@ -67,7 +67,7 @@ try{
  base.rgb = mix(base.rgb, vec3(.59,.57,.64), .19);
  base.rgb += .014 * sin(p.y*310.0+p.x*16.0+time);`);
  const water=new Reflector(new THREE.PlaneGeometry(180,180),{textureWidth:Math.min(innerWidth*1.3,1600),textureHeight:Math.min(innerHeight*1.3,1200),color:0x96929f,clipBias:.003,shader:waterShader,multisample:2});water.rotation.x=-Math.PI/2;water.position.y=.045;scene.add(water);
- const updateButterflies=createButterflies(scene,{reduced,camera});
+ const updateButterflies=createButterflies(scene,{reduced,camera,renderer});
  const dots=new THREE.BufferGeometry(),positions=new Float32Array(65*3);for(let i=0;i<positions.length;i+=3){positions[i]=(random()-.5)*25;positions[i+1]=random()*11;positions[i+2]=(random()-.5)*17}dots.setAttribute('position',new THREE.BufferAttribute(positions,3));const particles=new THREE.Points(dots,new THREE.PointsMaterial({color:'#fff5e9',size:.027,transparent:true,opacity:.6,depthWrite:false}));scene.add(particles);
  // A light lens pass keeps the reference's soft, slightly prismatic response.
  const renderSize=new THREE.Vector2();renderer.getDrawingBufferSize(renderSize);const target=new THREE.WebGLRenderTarget(renderSize.x,renderSize.y,{samples:2,type:THREE.HalfFloatType});
