@@ -12,26 +12,36 @@ export function createGalleryFlow({reduced}){
  const butterflyScene=new THREE.Scene();
  const updateButterflies=createButterflies(butterflyScene,{screen:true,reduced});
  const geometry=new THREE.PlaneGeometry(1,1,96,40),items=[];
- const vertex=`uniform vec2 size;uniform float bend;uniform float sink;uniform float direction;uniform float side;uniform float time;varying vec2 vUv;varying float vCurl;
- void main(){vUv=uv;vec3 p=position;
- float edge=pow(smoothstep(.05,1.,uv.y),1.5);
- float angle=edge*bend*2.8;float pull=sink*sink;
- p.x*=size.x;p.y*=size.y;
- // Roll the upper edge away from the viewer; pull the entire sheet upward.
- p.y+=(sin(angle)-angle)*size.y*.17+pull*size.y*1.25;
- p.y+=sin(uv.x*6.283+time*1.6)*edge*bend*size.y*.055;
- p.z=-(1.-cos(angle))*size.y*.42-pull*edge*size.y*.4;
- p.x*=1.-pull*.12;
- float perspective=1000./(1000.-p.z);p.xy*=perspective;
- vCurl=edge*bend;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`;
- const fragment=`uniform sampler2D map;uniform float fade;uniform float sink;uniform float bend;uniform float time;varying vec2 vUv;varying float vCurl;
- void main(){vec2 uv=vUv;uv.x+=sin(uv.y*22.+time*2.)*(vCurl*.009+sink*.024);vec4 c=texture2D(map,uv);uv.y+=sin(uv.x*28.-time*3.)*sink*.014;c=texture2D(map,uv);float sheen=sin(vCurl*3.14159)*.12+sink*.32;c.rgb=mix(c.rgb,vec3(.79,.88,.92),sheen);float edge=smoothstep(0.,.002,vUv.x)*smoothstep(0.,.002,1.-vUv.x);gl_FragColor=vec4(c.rgb,c.a*fade*edge*(1.-smoothstep(1.-sink*.95,1.04,vUv.y+sin(vUv.x*18.+time*2.)*sink*.055)));
+ // Every photo and caption samples the SAME screen-space sheet, never a per-card curl.
+ const vertex=`uniform vec2 size;uniform float top;uniform float fold;uniform float viewport;uniform float bend;uniform float time;varying vec2 vUv;varying float vCurl;varying float vDepth;
+ void main(){vUv=uv;
+ float y=top+(1.-uv.y)*size.y;
+ float x=position.x*size.x;
+ float radius=105.;
+ float distance=max(0.,fold-y);
+ float angle=min(distance/radius,3.05);
+ float mappedY=y;
+ float z=0.;
+ if(distance>0.){mappedY=fold-sin(angle)*radius;z=-(1.-cos(angle))*radius;}
+ float wave=sin(y*.006-time*1.5)*bend;
+ x+=wave*8.;mappedY+=sin(x*.005+y*.004)*bend*12.;
+ float depthScale=1.+z*.00055;
+ x*=depthScale;
+ vCurl=angle/3.14159;vDepth=distance;
+ gl_Position=projectionMatrix*viewMatrix*vec4(modelMatrix[3].x+x,viewport-mappedY,z,1.);
+ }`;
+ const fragment=`uniform sampler2D map;uniform float time;varying vec2 vUv;varying float vCurl;varying float vDepth;
+ void main(){vec2 uv=vUv;uv.y+=sin(uv.x*25.+time*2.)*vCurl*.008;
+ vec4 c=texture2D(map,uv);float shade=sin(vCurl*3.14159);
+ c.rgb=mix(c.rgb,vec3(.83,.89,.92),shade*.24);c.rgb*=1.-shade*.12;
+ float alpha=1.-smoothstep(220.,320.,vDepth);
+ gl_FragColor=vec4(c.rgb,c.a*alpha);
  #include <colorspace_fragment>
  }`;
  document.querySelectorAll('.look').forEach((el,i)=>{
   const image=el.querySelector('img'),surface=document.createElement('canvas'),ctx=surface.getContext('2d');
   const texture=new THREE.CanvasTexture(surface);texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;
-  const material=new THREE.ShaderMaterial({uniforms:{map:{value:texture},size:{value:new THREE.Vector2()},bend:{value:0},sink:{value:0},direction:{value:1},side:{value:i%2?1:-1},time:{value:0},fade:{value:1}},vertexShader:vertex,fragmentShader:fragment,transparent:true,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
+  const material=new THREE.ShaderMaterial({uniforms:{map:{value:texture},size:{value:new THREE.Vector2()},bend:{value:0},top:{value:0},fold:{value:0},viewport:{value:innerHeight},time:{value:0}},vertexShader:vertex,fragmentShader:fragment,transparent:true,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
   const mesh=new THREE.Mesh(geometry,material);scene.add(mesh);let paintedWidth=0;
   const item={el,image,mesh,ready:false,paint(){
    if(!image.complete||!image.naturalWidth)return;const rect=el.getBoundingClientRect(),imgRect=image.getBoundingClientRect();if(rect.width<1)return;
@@ -47,12 +57,13 @@ export function createGalleryFlow({reduced}){
  function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-lastTime)/1000,.05);lastTime=now;if(page.hidden||document.hidden){canvas.style.display='none';lastScroll=page.scrollTop;velocity=0;return}canvas.style.display='block';time+=dt;
   const delta=page.scrollTop-lastScroll;lastScroll=page.scrollTop;const target=THREE.MathUtils.clamp(delta/Math.max(dt,1/120)/1800,-1,1);velocity+=(target-velocity)*(1-Math.exp(-dt*(Math.abs(target)>.01?12:8)));
   const h=innerHeight,w=innerWidth,header=page.querySelector('.page-heading').getBoundingClientRect().bottom+4;
-  items.forEach((item,i)=>{const {el,mesh}=item;if(!el.hidden&&!item.ready)item.paint();if(el.hidden||!item.ready){mesh.visible=false;return}const r=el.getBoundingClientRect();if(Math.abs(r.width-item.width)>1)item.paint();mesh.visible=r.bottom>header-150&&r.top<h+180;if(!mesh.visible)return;
+  items.forEach((item,i)=>{const {el,mesh}=item;if(!el.hidden&&!item.ready)item.paint();if(el.hidden||!item.ready){mesh.visible=false;return}const r=el.getBoundingClientRect();if(Math.abs(r.width-item.width)>1)item.paint();mesh.visible=r.bottom>header-350&&r.top<h+180;if(!mesh.visible)return;
    mesh.position.set(r.left+r.width/2,h-r.top-r.height/2,0);mesh.rotation.set(0,0,0);const uniforms=mesh.material.uniforms;uniforms.size.value.set(r.width,r.height);
-   const exit=THREE.MathUtils.smoothstep(header+r.height*.8-r.bottom,0,r.height*.9);const entering=THREE.MathUtils.smoothstep(r.top-(h-70),0,170);
-   // Stop input => the mesh settles back to its undistorted front-facing plane.
-   const bend=reduced?0:Math.min(1,Math.abs(velocity)*.92+exit*.85+entering*.35);
-   uniforms.sink.value=reduced?0:exit;uniforms.bend.value+=(bend-uniforms.bend.value)*(1-Math.exp(-dt*12));uniforms.direction.value=velocity<-.02?-1:1;uniforms.time.value=time;uniforms.fade.value=1-Math.pow(exit,2)*.97;
+   uniforms.top.value=r.top;uniforms.viewport.value=h;
+   uniforms.fold.value=reduced?-10000:header+100;
+   uniforms.bend.value=reduced?0:velocity;
+   uniforms.time.value=time;
+
   });
   updateButterflies(time);renderer.setScissorTest(false);renderer.clear();renderer.setScissor(0,0,w,Math.max(0,h-header));renderer.setScissorTest(true);renderer.render(scene,camera);renderer.setScissorTest(false);renderer.autoClear=false;renderer.clearDepth();renderer.render(butterflyScene,camera);renderer.autoClear=true;
  }requestAnimationFrame(frame);
