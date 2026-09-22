@@ -1,0 +1,12 @@
+export const collection = [
+ ['Soft Structure','VOLUME & TAILORING','부드러운 볼륨과 단단한 테일러링. 움직임을 따라 새로운 실루엣을 발견합니다.'],
+ ['In Between','CONTRAST & BALANCE','검정과 흰색, 비움과 채움 사이에서 균형을 탐구합니다.'],
+ ['Free Form','SPACE & MOVEMENT','몸과 옷 사이의 공간에서 자유로운 움직임이 시작됩니다.'],
+ ['After Hours','SCULPTURE & SHADOW','단정한 선과 입체적인 형태가 만나는 저녁의 실루엣.'],
+ ['Quiet Gesture','LIGHT & CONTRAST','빛과 그림자를 따라 드러나는 섬세한 표정.'],
+ ['Unfold','MOTION & TEXTURE','움직임에 따라 펼쳐지는 새로운 비례와 질감.'],
+ ['Second Skin','FORM & STRUCTURE','몸의 선을 따라 자연스럽게 이어지는 형태.'],
+ ['Soft Focus','TONE & CONTRAST','낮은 채도와 부드러운 빛이 만드는 여백.'],
+ ['Passing Light','RHYTHM & MOTION','스쳐 가는 빛과 움직임 속에 남는 순간.'],
+ ['New Perspective','SHAPE & VOLUME','다른 시선에서 다시 발견하는 익숙한 실루엣.'],
+].map(([title,label,description],i)=>({title,label,description,category:i%3,image:`assets/look-${String(i+1).padStart(2,'0')}.jpg`}));
