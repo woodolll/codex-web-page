@@ -1,11 +1,11 @@
-look-11.jpg — https://www.pexels.com/photo/31987824/
-look-12.jpg — https://www.pexels.com/photo/14452645/
-look-13.jpg — https://www.pexels.com/photo/7516554/
-look-14.jpg — https://www.pexels.com/photo/17048205/
-look-15.jpg — https://www.pexels.com/photo/35390016/
-look-16.jpg — https://www.pexels.com/photo/36175930/
-look-17.jpg — https://www.pexels.com/photo/9247340/
-look-18.jpg — https://www.pexels.com/photo/18686781/
-look-19.jpg — https://www.pexels.com/photo/15968860/
-look-20.jpg — https://www.pexels.com/photo/33308841/
-Source: Pexels. Photo pages marked Free to use.
+Replaced with monochrome editorial photographs:
+look-11.jpg https://www.pexels.com/photo/20087352/
+look-12.jpg https://www.pexels.com/photo/16755783/
+look-13.jpg https://www.pexels.com/photo/17222542/
+look-14.jpg https://www.pexels.com/photo/19673473/
+look-15.jpg https://www.pexels.com/photo/16755822/
+look-16.jpg https://www.pexels.com/photo/19673467/
+look-17.jpg https://www.pexels.com/photo/20419354/
+look-18.jpg https://www.pexels.com/photo/24712936/
+look-19.jpg https://www.pexels.com/photo/18798138/
+look-20.jpg https://www.pexels.com/photo/26628486/
