@@ -1,4 +1,7 @@
 node_modules/
+dist/
+.wrangler/
+.dev.vars*
 .env
 .env.*
 !.env.example
@@ -6,3 +9,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 assets/photo-source.html
+
+!.dev.vars.example

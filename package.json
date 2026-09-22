@@ -1,1 +1,17 @@
-{"name":"forme-collection","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.mjs","check":"node --check app.js && node --check server.mjs"}}
+{
+  "name": "forme-collection",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check app.js && node --check collection.js && node --check gallery-flow.js && node --check liquid.js && node --check server.mjs && node --check build.mjs",
+    "build": "node build.mjs",
+    "deploy": "node build.mjs && wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "undici": "^8.10.2",
+    "wrangler": "4.135.0"
+  }
+}

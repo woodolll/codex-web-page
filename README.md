@@ -1,8 +1,12 @@
 # FORME Studio — immersive fashion collection
 
-배포하지 않은 로컬 Three.js 홈페이지입니다.
+Three.js로 구현한 패션 컬렉션 홈페이지입니다.
 
 실행: `node server.mjs` → http://127.0.0.1:3000
+
+Cloudflare Workers 정적 사이트 배포: `pnpm install` → `pnpm exec wrangler login` → `pnpm run deploy`.
+`node build.mjs`가 공개할 HTML, CSS, JavaScript와 사진 10장만 `dist/`에 복사합니다.
+GitHub 업로드와 웹 배포는 별도이며, 이 설정은 직접 업로드 방식입니다. 배포 설정은 `wrangler.jsonc`에 있습니다.
 
 Unseen의 화면을 참고하여 아치, 계단, 진주빛 구체, 수면 반사 장면을 Three.js 지오메트리로 새로 구현했습니다. 원본 모델·셰이더를 복사한 것이 아니므로 세부 형상과 움직임은 차이가 있습니다.
 
