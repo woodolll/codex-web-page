@@ -45,7 +45,7 @@ export function createLiquidExperience({scene,camera,renderer,reduced,isActive,o
  const textMaterial=new THREE.ShaderMaterial({transparent:true,depthTest:false,depthWrite:false,uniforms:{...uniforms,map:{value:textTexture},visibility:{value:0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:`uniform sampler2D map;uniform float visibility;varying vec2 vUv;${flowGLSL}
  void main(){vec3 flow=fluidField(vUv);vec4 glyph=texture2D(map,vUv+flow.xy*.45);vec3 waterColor=mix(vec3(.035,.35,.46),vec3(.37,.16,.59),vUv.x);vec3 color=mix(glyph.rgb,waterColor,flow.z*.96);color+=flow.z*.025;gl_FragColor=vec4(color,glyph.a*visibility);}`});
  overlayScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),textMaterial));
- let typeReady=false;
+ let typeReady=false,wasHome=false;
  function paintType(){
   const heading=document.querySelector('.hero-copy h1');if(!heading)return;
   const scale=Math.min(devicePixelRatio,1.75);textCanvas.width=Math.round(innerWidth*scale);textCanvas.height=Math.round(innerHeight*scale);ctx.scale(scale,scale);ctx.clearRect(0,0,innerWidth,innerHeight);
@@ -84,6 +84,7 @@ export function createLiquidExperience({scene,camera,renderer,reduced,isActive,o
   // Collection surfaces are handled by gallery-flow.js, without rotating DOM cards.
   if(!reduced){letters.forEach(letter=>{if(!letter.el.closest('.page:not([hidden])'))return;const r=letter.el.getBoundingClientRect();const dx=clientX-(r.left+r.width/2-letter.x),dy=clientY-(r.top+r.height/2-letter.y);const heat=Math.exp(-(dx*dx+dy*dy)/16000);const k=1-Math.exp(-dt*6);letter.heat+=(heat-letter.heat)*k;letter.x+=(dx*heat*.15-letter.x)*k;letter.y+=((dy*.2+Math.sin(time*3+r.left*.025)*8)*heat-letter.y)*k;letter.el.style.transform=`translate(${letter.x.toFixed(2)}px,${letter.y.toFixed(2)}px) rotate(${(letter.x*.25).toFixed(2)}deg)`;letter.el.style.color=`rgb(${Math.round(38+letter.heat*25)} ${Math.round(39+letter.heat*105)} ${Math.round(36+letter.heat*140)})`})}
   const isHome=isActive()&&document.body.dataset.page==='index';
+  if(isHome&&!wasHome)paintType();wasHome=isHome;
   const raw=isHome?window.scrollY/innerHeight:0;progress+=(raw-progress)*(reduced?1:1-Math.exp(-dt*5.5));
   document.body.style.setProperty('--flow-scroll',Math.min(progress*1.8,1));
   document.body.classList.toggle('flow-scrolled',isHome&&progress>.2);
