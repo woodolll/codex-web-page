@@ -24,7 +24,7 @@ export function createCollectionRoom({reduced}) {
   function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();window.addEventListener('resize',resize);
   return (active,scroll=0)=>{
     canvas.style.display=active?'block':'none';if(!active)return;
-    const k=reduced?1:.045;camera.position.lerp(new THREE.Vector3(reduced?0:pointer.x*.7,3.7+(reduced?0:-pointer.y*.3),9-Math.min(scroll/2500,1.6)),k);
+    const k=reduced?1:.065;camera.position.lerp(new THREE.Vector3(reduced?0:pointer.x*.7,3.7+(reduced?0:-pointer.y*.3),9-Math.min(scroll/2500,1.6)),k);
     camera.lookAt(0,3.8,-20);renderer.render(scene,camera);
   };
 }
