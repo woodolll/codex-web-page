@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createButterflies } from './butterflies.js';
 
 // Screen-aligned photo meshes: flat at rest; only the surface curls in motion.
 export function createGalleryFlow({reduced}){
@@ -8,14 +9,19 @@ export function createGalleryFlow({reduced}){
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
  const canvas=renderer.domElement;canvas.id='gallery-liquid';canvas.setAttribute('aria-hidden','true');document.body.append(canvas);
  const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(0,innerWidth,innerHeight,0,-2000,2000);camera.position.z=1000;
+ const butterflyScene=new THREE.Scene();
+ const updateButterflies=createButterflies(butterflyScene,{screen:true,reduced});
  const geometry=new THREE.PlaneGeometry(1,1,96,40),items=[];
  const vertex=`uniform vec2 size;uniform float bend;uniform float sink;uniform float direction;uniform float side;uniform float time;varying vec2 vUv;varying float vCurl;
- void main(){vUv=uv;vec3 p=position;float u=mix(uv.x,1.-uv.x,step(side,0.));float edge=pow(smoothstep(.12,1.,u),1.8);float angle=edge*bend*3.4;float signX=side;
+ void main(){vUv=uv;vec3 p=position;
+ float edge=pow(smoothstep(.05,1.,uv.y),1.5);
+ float angle=edge*bend*2.8;float pull=sink*sink;
  p.x*=size.x;p.y*=size.y;
- p.x+=signX*(sin(angle)-angle)*size.x*.26;
- p.y+=direction*(1.-cos(angle))*size.y*.3;
- p.y+=sin(uv.x*3.14159)*sin(uv.y*3.14159+time*1.4)*bend*size.y*.045;
- float tip=uv.y;float pull=sink*sink; p.x*=1.-pull*(.25+tip*.6);p.y+=pull*size.y*(.45+tip*.55);p.x+=sin(tip*8.+time*2.)*sink*size.x*.035;p.z=(1.-cos(angle))*size.x*.22-sink*size.x*tip*.45;
+ // Roll the upper edge away from the viewer; pull the entire sheet upward.
+ p.y+=(sin(angle)-angle)*size.y*.17+pull*size.y*1.25;
+ p.y+=sin(uv.x*6.283+time*1.6)*edge*bend*size.y*.055;
+ p.z=-(1.-cos(angle))*size.y*.42-pull*edge*size.y*.4;
+ p.x*=1.-pull*.12;
  float perspective=1000./(1000.-p.z);p.xy*=perspective;
  vCurl=edge*bend;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`;
  const fragment=`uniform sampler2D map;uniform float fade;uniform float sink;uniform float bend;uniform float time;varying vec2 vUv;varying float vCurl;
@@ -48,7 +54,7 @@ export function createGalleryFlow({reduced}){
    const bend=reduced?0:Math.min(1,Math.abs(velocity)*.92+exit*.85+entering*.35);
    uniforms.sink.value=reduced?0:exit;uniforms.bend.value+=(bend-uniforms.bend.value)*(1-Math.exp(-dt*12));uniforms.direction.value=velocity<-.02?-1:1;uniforms.time.value=time;uniforms.fade.value=1-Math.pow(exit,2)*.97;
   });
-  renderer.setScissorTest(false);renderer.clear();renderer.setScissor(0,0,w,Math.max(0,h-header));renderer.setScissorTest(true);renderer.render(scene,camera);
+  updateButterflies(time);renderer.setScissorTest(false);renderer.clear();renderer.setScissor(0,0,w,Math.max(0,h-header));renderer.setScissorTest(true);renderer.render(scene,camera);renderer.setScissorTest(false);renderer.autoClear=false;renderer.clearDepth();renderer.render(butterflyScene,camera);renderer.autoClear=true;
  }requestAnimationFrame(frame);
  canvas.addEventListener('webglcontextlost',()=>{items.forEach(item=>item.el.classList.remove('gallery-card-ready'));canvas.style.display='none'});
 }
